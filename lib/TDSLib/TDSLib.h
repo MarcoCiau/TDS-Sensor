@@ -1,39 +1,37 @@
 #ifndef TDS_LIB_H
 #define TDS_LIB_H
-
 #include "mbed.h"
 
-#define ReceiveBufferLength 15
+#define BUFFER_LENGTH 15
 #define TDS_FACTOR 0.5 /* TDS = Ec / 2 */
 #define TDS_DEBUG_SR_MS 1000
+
 class TDSLib
 {
 private:
-    /* data */
     uint32_t debugTDSTimer;
-    float temperature;
-    char cmdReceivedBuffer[ReceiveBufferLength+1];   // store the serial cmd from the serial monitor
-    uint8_t cmdReceivedBufferIndex;
-    float kValue;      // k value of the probe,you can calibrate in buffer solution ,such as 706.5ppm(1413us/cm)@25^C 
-    float analogValue;
-    float voltage;
-    float ecValue;//non-temperature compensation EC value
-    float ecValue25;//temperature compensation EC value
-    float tdsValue;
+    float temperature; /*Water Temperature*/
+    char cmdReceivedBuffer[BUFFER_LENGTH+1];/*Serial Buffer*/
+    uint8_t rxBufferIndex;
+    float kValue;    /* K-Cell constant value of the probe. k = 1 (default) */
+    float voltage;   /* Raw ADC To Voltage Conversion*/
+    float ecValue;   /* non-temperature compensation EC value */
+    float ecValue25; /* temperature compensation EC value */
+    float tdsValue;  /* TDS Value based on 0.5 TDS Factor*/
 
-    void readKValues();
-    bool cmdSerialDataAvailable();
-    uint8_t cmdParse();
-    void calibration(uint8_t mode);
-
-    float vAVG();
+    bool SerialDataAvailable();
+    uint8_t payloadParser();
+    void calibration(uint8_t mode); /* TDS Probe Calibration */
+    float vAVG();/* Averaging ADC Readings */
 public:
-    TDSLib(/* args */);
+    TDSLib();
     ~TDSLib();
-    void begin();
     void update();
+    /*Set Water Temperature for EC compensation*/
     void setTemperature(float temp);
+    /*Set K-Cell Constant of probe*/
     void setKValue(float kCell);
+    
     float getKValue();
     float getTDSValue();
     float getECValue();

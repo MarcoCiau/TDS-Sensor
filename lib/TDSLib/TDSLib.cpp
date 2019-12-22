@@ -5,13 +5,9 @@
 Serial pc(PA_2, PA_3);
 AnalogIn anEC(PA_0);
 
-TDSLib::TDSLib(/* args */)
+TDSLib::TDSLib()
 {
-    // this->pin = A1;
     this->temperature = 25.0;
-    // this->aref = 5.0;
-    // this->adcRange = 1024.0;
-    // this->kValueAddress = 8;
     this->kValue = 1.00;
     this->debugTDSTimer = 0;
 }
@@ -31,11 +27,6 @@ void TDSLib::setTemperature(float temp)
     this->temperature = temp;
 }
 
-void TDSLib::begin()
-{
-    // readKValues();
-}
-
 void TDSLib::update()
 {
     this->voltage = vAVG() / 1000.00;
@@ -43,9 +34,9 @@ void TDSLib::update()
 	this->ecValue25  =  this->ecValue / (1.0+0.02*(this->temperature-25.0));  //temperature compensation
 	this->tdsValue = ecValue25 * (float)TDS_FACTOR;
 
-    if(cmdSerialDataAvailable() > 0)
+    if(SerialDataAvailable() > 0)
     {
-        calibration(cmdParse());  // if received serial cmd from the serial monitor, enter into the calibration mode
+        calibration(payloadParser());  // if received serial cmd from the serial monitor, enter into the calibration mode
     }
 
     if (HAL_GetTick() - debugTDSTimer > TDS_DEBUG_SR_MS)
@@ -70,7 +61,7 @@ float TDSLib::getTDSValue()
     return this->tdsValue;
 }
 
-bool TDSLib::cmdSerialDataAvailable()
+bool TDSLib::SerialDataAvailable()
 {
     char cmd;
     static unsigned long cmdRxTimeout = HAL_GetTick();
@@ -78,28 +69,28 @@ bool TDSLib::cmdSerialDataAvailable()
     {
         if(HAL_GetTick() - cmdRxTimeout > 500U)
         {
-            cmdReceivedBufferIndex = 0;
-            memset(cmdReceivedBuffer, 0, (ReceiveBufferLength + 1));
+            rxBufferIndex = 0;
+            memset(cmdReceivedBuffer, 0, (BUFFER_LENGTH + 1));
         }
         cmdRxTimeout = HAL_GetTick();
         cmd = pc.getc();
 
-        if (cmd == '\n' || cmdReceivedBufferIndex == ReceiveBufferLength)
+        if (cmd == '\n' || rxBufferIndex == BUFFER_LENGTH)
         {
-            cmdReceivedBufferIndex = 0;
+            rxBufferIndex = 0;
             strupr(cmdReceivedBuffer);
             return true;
         }
         else
         {
-            cmdReceivedBuffer[cmdReceivedBufferIndex] = cmd;
-            cmdReceivedBufferIndex++;
+            cmdReceivedBuffer[rxBufferIndex] = cmd;
+            rxBufferIndex++;
         }
     }
     return false;
 }
 
-uint8_t TDSLib::cmdParse()
+uint8_t TDSLib::payloadParser()
 {
     uint8_t modeIndex = 0;
     if(strstr(cmdReceivedBuffer, "ENTER") != NULL) modeIndex = 1;
@@ -155,7 +146,6 @@ void TDSLib::calibration(uint8_t mode)
         {
             if(ecCalibrationFinish)
             {
-            //    EEPROM_write(kValueAddress, kValue);
                pc.printf("\n>>>Calibration Successful,K Value Saved");
             }
             else pc.printf(">>>Calibration Failed");       
