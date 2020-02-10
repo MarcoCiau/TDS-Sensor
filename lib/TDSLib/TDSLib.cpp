@@ -3,9 +3,8 @@
 #include <string.h> 
 
 Serial pc(PA_2, PA_3);
-AnalogIn anEC(PA_0);
 
-TDSLib::TDSLib()
+TDSLib::TDSLib(PinName pin) : _adcPin(pin)
 {
     this->temperature = 25.0;
     this->kValue = 1.00;
@@ -13,6 +12,11 @@ TDSLib::TDSLib()
 }
 
 TDSLib::~TDSLib()
+{
+
+}
+
+void TDSLib::begin()
 {
 
 }
@@ -162,10 +166,9 @@ float TDSLib::vAVG()
     uint32_t sumV = 0;
     for (uint8_t i = 0; i < 100; i++)
     {
-        sumV += anEC.read() * 3300;
+        sumV += _adcPin.read() * 3300;
     }
     float avgV = 0;
     avgV = (float)(sumV / 100.00);
     return avgV;
 }
-TDSLib probeTest;

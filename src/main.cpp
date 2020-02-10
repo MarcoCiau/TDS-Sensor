@@ -1,5 +1,6 @@
 #include <mbed.h>
 #include <TDSLib.h>
+TDSLib probeTest(PA_0);
 int main() {
 
   // put your setup code here, to run once:

@@ -9,6 +9,7 @@
 class TDSLib
 {
 private:
+    AnalogIn _adcPin;
     uint32_t debugTDSTimer;
     float temperature; /*Water Temperature*/
     char cmdReceivedBuffer[BUFFER_LENGTH+1];/*Serial Buffer*/
@@ -24,8 +25,9 @@ private:
     void calibration(uint8_t mode); /* TDS Probe Calibration */
     float vAVG();/* Averaging ADC Readings */
 public:
-    TDSLib();
+    TDSLib(PinName pin);
     ~TDSLib();
+    void begin();
     void update();
     /*Set Water Temperature for EC compensation*/
     void setTemperature(float temp);
@@ -37,5 +39,4 @@ public:
     float getECValue();
 };
 
-extern TDSLib probeTest;
 #endif
